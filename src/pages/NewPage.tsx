@@ -7,8 +7,8 @@ import { PrayerForm } from '@/components/prayer/PrayerForm';
 export function NewPage() {
   const navigate = useNavigate();
 
-  async function handleSubmit(input: PrayerInput) {
-    await prayerRepository.create(input);
+  async function handleSubmit(input: PrayerInput, password?: string) {
+    await prayerRepository.create(input, password ?? '');
     navigate('/');
   }
 
@@ -20,7 +20,7 @@ export function NewPage() {
         </Link>
         <h1 className="font-heading text-2xl font-bold">기도제목 남기기</h1>
       </header>
-      <PrayerForm submitLabel="기도제목 올리기" onSubmit={handleSubmit} />
+      <PrayerForm requirePassword submitLabel="기도제목 올리기" onSubmit={handleSubmit} />
     </div>
   );
 }

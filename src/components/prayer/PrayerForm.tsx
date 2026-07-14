@@ -17,24 +17,35 @@ import {
 
 const CATEGORY_NONE = 'none';
 
+const PASSWORD_MIN_LENGTH = 4;
+
 interface PrayerFormProps {
   initialValue?: PrayerInput;
   submitLabel: string;
-  onSubmit: (input: PrayerInput) => Promise<void>;
+  // requirePassword일 때 두 번째 인자로 비밀번호를 넘긴다.
+  requirePassword?: boolean;
+  onSubmit: (input: PrayerInput, password?: string) => Promise<void>;
 }
 
 interface FieldErrors {
   cohort?: string;
   authorName?: string;
   content?: string;
+  password?: string;
 }
 
-export function PrayerForm({ initialValue, submitLabel, onSubmit }: PrayerFormProps) {
+export function PrayerForm({
+  initialValue,
+  submitLabel,
+  requirePassword = false,
+  onSubmit,
+}: PrayerFormProps) {
   const [cohort, setCohort] = useState(initialValue?.cohort ?? '');
   const [authorName, setAuthorName] = useState(initialValue?.authorName ?? '');
   const [isAnonymous, setIsAnonymous] = useState(initialValue?.isAnonymous ?? false);
   const [category, setCategory] = useState<string>(initialValue?.category ?? CATEGORY_NONE);
   const [content, setContent] = useState(initialValue?.content ?? '');
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -50,6 +61,9 @@ export function PrayerForm({ initialValue, submitLabel, onSubmit }: PrayerFormPr
     if (!content.trim()) {
       next.content = '기도제목을 입력해 주세요.';
     }
+    if (requirePassword && password.length < PASSWORD_MIN_LENGTH) {
+      next.password = `비밀번호를 ${PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`;
+    }
     return next;
   }
 
@@ -62,13 +76,16 @@ export function PrayerForm({ initialValue, submitLabel, onSubmit }: PrayerFormPr
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await onSubmit({
-        cohort: cohort.trim(),
-        authorName: authorName.trim(),
-        isAnonymous,
-        category: category === CATEGORY_NONE ? undefined : (category as PrayerCategory),
-        content: content.trim(),
-      });
+      await onSubmit(
+        {
+          cohort: cohort.trim(),
+          authorName: authorName.trim(),
+          isAnonymous,
+          category: category === CATEGORY_NONE ? undefined : (category as PrayerCategory),
+          content: content.trim(),
+        },
+        requirePassword ? password : undefined,
+      );
     } catch {
       setSubmitError('저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       setSubmitting(false);
@@ -148,6 +165,29 @@ export function PrayerForm({ initialValue, submitLabel, onSubmit }: PrayerFormPr
         />
         {errors.content && <p className="text-sm text-destructive">{errors.content}</p>}
       </div>
+
+      {requirePassword && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="password">수정 비밀번호</Label>
+          <Input
+            id="password"
+            type="password"
+            inputMode="numeric"
+            autoComplete="new-password"
+            placeholder="4자 이상"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={!!errors.password}
+          />
+          {errors.password ? (
+            <p className="text-sm text-destructive">{errors.password}</p>
+          ) : (
+            <p className="text-sm text-text-muted">
+              나중에 이 기도제목을 수정할 때 필요해요. 잊지 않도록 기억해 주세요.
+            </p>
+          )}
+        </div>
+      )}
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 

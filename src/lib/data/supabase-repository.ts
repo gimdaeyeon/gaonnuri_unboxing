@@ -1,8 +1,10 @@
 // Supabase 구현 뼈대 — 아직 미구현. 연결 시 주석의 예시를 참고해 채우세요.
 //
 // 테이블: prayer_requests
-//   컬럼(snake_case): id, author_name, cohort, is_anonymous, category, content, pray_count, created_at, updated_at
+//   컬럼(snake_case): id, author_name, cohort, is_anonymous, category, content, pray_count,
+//                     password_hash, created_at, updated_at
 //   인덱스 권장: (cohort, author_name)
+//   ※ password_hash는 절대 select 하지 않는다(클라이언트 노출 금지). 검증은 RPC로만.
 //
 // import { createClient } from '@/lib/supabase/client';
 import type { PrayerRepository } from './prayer-repository';
@@ -48,10 +50,12 @@ export const supabasePrayerRepository: PrayerRepository = {
     // return data.map(fromRow);
   },
 
-  async create(_input) {
+  async create(_input, _password) {
     throw new Error('Not implemented');
+    // 비밀번호는 평문 저장·클라이언트 전송 금지 — 서버에서 해시. pgcrypto의 crypt() 사용:
+    //   insert 시 password_hash: crypt(_password, gen_salt('bf'))  (DB 트리거/RPC로 처리 권장)
     // const { data, error } = await supabase.from('prayer_requests')
-    //   .insert(toRow(_input)).select().single();
+    //   .insert({ ...toRow(_input), pray_count: 0 }).select().single();
     // if (error) throw error;
     // return fromRow(data);
   },
@@ -75,5 +79,17 @@ export const supabasePrayerRepository: PrayerRepository = {
     // const { data, error } = await supabase.rpc('increment_pray_count', { p_id: _id }).single();
     // if (error) throw error;
     // return fromRow(data);
+  },
+
+  async verifyPassword(_id, _password) {
+    throw new Error('Not implemented');
+    // 해시 비교는 서버에서만 — password_hash를 클라이언트로 내려받지 말 것.
+    //   create function verify_prayer_password(p_id uuid, p_password text) returns boolean as $$
+    //     select password_hash = crypt(p_password, password_hash)
+    //     from prayer_requests where id = p_id;
+    //   $$ language sql;
+    // const { data, error } = await supabase.rpc('verify_prayer_password', { p_id: _id, p_password: _password });
+    // if (error) throw error;
+    // return data === true;
   },
 };
