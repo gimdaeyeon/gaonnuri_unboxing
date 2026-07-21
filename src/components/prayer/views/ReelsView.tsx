@@ -1,6 +1,6 @@
 import { ChevronUp } from 'lucide-react';
 import type { PrayerRequest } from '@/lib/types';
-import { getDisplayName, PRAYER_CATEGORY_LABELS } from '@/lib/types';
+import { getDisplayName } from '@/lib/types';
 import { PrayerReactionButton } from '@/components/prayer/PrayerReactionButton';
 
 interface ReelsViewProps {
@@ -28,9 +28,6 @@ export function ReelsView({ prayers, onReacted }: ReelsViewProps) {
                 {prayer.cohort}또래
               </span>
               <span className="text-sm font-medium">{getDisplayName(prayer)}</span>
-              {prayer.category && (
-                <span className="text-sm">· {PRAYER_CATEGORY_LABELS[prayer.category]}</span>
-              )}
             </div>
             <PrayerReactionButton prayer={prayer} onReacted={onReacted} />
           </footer>

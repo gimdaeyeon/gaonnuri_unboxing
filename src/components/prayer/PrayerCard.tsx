@@ -1,5 +1,5 @@
 import type { PrayerRequest } from '@/lib/types';
-import { getDisplayName, PRAYER_CATEGORY_LABELS } from '@/lib/types';
+import { getDisplayName } from '@/lib/types';
 import { PrayerReactionButton } from '@/components/prayer/PrayerReactionButton';
 
 interface PrayerCardProps {
@@ -15,11 +15,6 @@ export function PrayerCard({ prayer, onReacted }: PrayerCardProps) {
           {prayer.cohort}또래
         </span>
         <span className="text-sm font-medium">{getDisplayName(prayer)}</span>
-        {prayer.category && (
-          <span className="ml-auto rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
-            {PRAYER_CATEGORY_LABELS[prayer.category]}
-          </span>
-        )}
       </header>
       <p className="whitespace-pre-wrap break-keep text-[15px] leading-relaxed">
         {prayer.content}

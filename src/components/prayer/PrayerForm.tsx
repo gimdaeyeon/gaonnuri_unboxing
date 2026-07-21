@@ -1,21 +1,12 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { PrayerCategory, PrayerInput } from '@/lib/types';
-import { PRAYER_CATEGORY_LABELS } from '@/lib/types';
+import { Eye, EyeOff } from 'lucide-react';
+import type { PrayerInput } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
-const CATEGORY_NONE = 'none';
 
 const PASSWORD_MIN_LENGTH = 4;
 
@@ -43,9 +34,9 @@ export function PrayerForm({
   const [cohort, setCohort] = useState(initialValue?.cohort ?? '');
   const [authorName, setAuthorName] = useState(initialValue?.authorName ?? '');
   const [isAnonymous, setIsAnonymous] = useState(initialValue?.isAnonymous ?? false);
-  const [category, setCategory] = useState<string>(initialValue?.category ?? CATEGORY_NONE);
   const [content, setContent] = useState(initialValue?.content ?? '');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('0000');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -81,7 +72,6 @@ export function PrayerForm({
           cohort: cohort.trim(),
           authorName: authorName.trim(),
           isAnonymous,
-          category: category === CATEGORY_NONE ? undefined : (category as PrayerCategory),
           content: content.trim(),
         },
         requirePassword ? password : undefined,
@@ -134,25 +124,6 @@ export function PrayerForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="category">
-          카테고리 <span className="font-normal text-text-muted">(선택)</span>
-        </Label>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger id="category" className="w-full">
-            <SelectValue placeholder="선택 안 함" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={CATEGORY_NONE}>선택 안 함</SelectItem>
-            {Object.entries(PRAYER_CATEGORY_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex flex-col gap-2">
         <Label htmlFor="content">기도제목</Label>
         <Textarea
           id="content"
@@ -169,16 +140,27 @@ export function PrayerForm({
       {requirePassword && (
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">수정 비밀번호</Label>
-          <Input
-            id="password"
-            type="password"
-            inputMode="numeric"
-            autoComplete="new-password"
-            placeholder="4자 이상"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={!!errors.password}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              inputMode="numeric"
+              autoComplete="new-password"
+              placeholder="4자 이상"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={!!errors.password}
+              className="pr-9"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+              className="absolute inset-y-0 right-2.5 flex items-center text-text-muted hover:text-text"
+            >
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
           {errors.password ? (
             <p className="text-sm text-destructive">{errors.password}</p>
           ) : (

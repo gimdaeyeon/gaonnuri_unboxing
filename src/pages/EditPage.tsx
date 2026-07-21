@@ -68,7 +68,6 @@ export function EditPage() {
             authorName: prayer.authorName,
             cohort: prayer.cohort,
             isAnonymous: prayer.isAnonymous,
-            category: prayer.category,
             content: prayer.content,
           }}
           submitLabel="수정 저장"

@@ -1,6 +1,6 @@
 import type { PrayerRequest, PrayerInput } from '@/lib/types';
-import { mockPrayerRepository } from './mock-repository';
-// import { supabasePrayerRepository } from './supabase-repository'; // 추후
+// import { mockPrayerRepository } from './mock-repository'; // 로컬 개발용 fallback
+import { supabasePrayerRepository } from './supabase-repository';
 
 export interface PrayerRepository {
   getAll(): Promise<PrayerRequest[]>;
@@ -13,6 +13,6 @@ export interface PrayerRepository {
   verifyPassword(id: string, password: string): Promise<boolean>;
 }
 
-// ★ Supabase 붙일 때 이 한 줄만 교체
-export const prayerRepository: PrayerRepository = mockPrayerRepository;
-// export const prayerRepository: PrayerRepository = supabasePrayerRepository;
+// ★ mock으로 되돌릴 땐 이 한 줄만 교체
+export const prayerRepository: PrayerRepository = supabasePrayerRepository;
+// export const prayerRepository: PrayerRepository = mockPrayerRepository;

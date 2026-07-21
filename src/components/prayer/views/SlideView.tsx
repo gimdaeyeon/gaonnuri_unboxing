@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PrayerRequest } from '@/lib/types';
-import { getDisplayName, PRAYER_CATEGORY_LABELS } from '@/lib/types';
+import { getDisplayName } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { PrayerReactionButton } from '@/components/prayer/PrayerReactionButton';
 
@@ -63,7 +63,6 @@ export function SlideView({ prayers, onReacted }: SlideViewProps) {
               <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
                 <span className="font-semibold text-primary">{prayer.cohort}또래</span>
                 <span>{getDisplayName(prayer)}</span>
-                {prayer.category && <span>· {PRAYER_CATEGORY_LABELS[prayer.category]}</span>}
               </div>
               <PrayerReactionButton prayer={prayer} onReacted={onReacted} />
             </footer>
