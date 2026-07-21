@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "pretendard/dist/web/static/pretendard-subset.css";
 
 /* ════════════════════════════════════════════════════════════
    ★ 디자인 토큰 — 포스터 시안 나오면 이 블록의 값만 교체하세요.
@@ -22,8 +22,8 @@
     --color-border: #e7e5e4;
 
     /* 폰트 (placeholder) */
-    --font-heading: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
-    --font-body: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
+    --font-heading: 'Pretendard', system-ui, sans-serif;
+    --font-body: 'Pretendard', system-ui, sans-serif;
 
     /* 모양 */
     --radius: 1rem;
