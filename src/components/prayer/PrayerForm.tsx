@@ -13,8 +13,10 @@ const PASSWORD_MIN_LENGTH = 4;
 interface PrayerFormProps {
   initialValue?: PrayerInput;
   submitLabel: string;
-  // requirePassword일 때 두 번째 인자로 비밀번호를 넘긴다.
+  // requirePassword일 때 두 번째 인자로 비밀번호를 넘긴다. (새 글 작성 — 필수)
   requirePassword?: boolean;
+  // allowPasswordChange일 때 비밀번호 필드를 선택 입력으로 노출한다. (수정 — 비워두면 기존 비밀번호 유지)
+  allowPasswordChange?: boolean;
   onSubmit: (input: PrayerInput, password?: string) => Promise<void>;
 }
 
@@ -29,13 +31,15 @@ export function PrayerForm({
   initialValue,
   submitLabel,
   requirePassword = false,
+  allowPasswordChange = false,
   onSubmit,
 }: PrayerFormProps) {
+  const showPasswordField = requirePassword || allowPasswordChange;
   const [cohort, setCohort] = useState(initialValue?.cohort ?? '');
   const [authorName, setAuthorName] = useState(initialValue?.authorName ?? '');
   const [isAnonymous, setIsAnonymous] = useState(initialValue?.isAnonymous ?? false);
   const [content, setContent] = useState(initialValue?.content ?? '');
-  const [password, setPassword] = useState('0000');
+  const [password, setPassword] = useState(requirePassword ? '0000' : '');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +57,8 @@ export function PrayerForm({
       next.content = '기도제목을 입력해 주세요.';
     }
     if (requirePassword && password.length < PASSWORD_MIN_LENGTH) {
+      next.password = `비밀번호를 ${PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`;
+    } else if (allowPasswordChange && password && password.length < PASSWORD_MIN_LENGTH) {
       next.password = `비밀번호를 ${PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`;
     }
     return next;
@@ -74,7 +80,7 @@ export function PrayerForm({
           isAnonymous,
           content: content.trim(),
         },
-        requirePassword ? password : undefined,
+        requirePassword ? password : allowPasswordChange && password ? password : undefined,
       );
     } catch {
       setSubmitError('저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
@@ -137,16 +143,16 @@ export function PrayerForm({
         {errors.content && <p className="text-sm text-destructive">{errors.content}</p>}
       </div>
 
-      {requirePassword && (
+      {showPasswordField && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">수정 비밀번호</Label>
+          <Label htmlFor="password">{requirePassword ? '수정 비밀번호' : '새 비밀번호 (선택)'}</Label>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               inputMode="numeric"
               autoComplete="new-password"
-              placeholder="4자 이상"
+              placeholder={requirePassword ? '4자 이상' : '변경하려면 4자 이상 입력'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               aria-invalid={!!errors.password}
@@ -165,7 +171,9 @@ export function PrayerForm({
             <p className="text-sm text-destructive">{errors.password}</p>
           ) : (
             <p className="text-sm text-text-muted">
-              나중에 이 기도제목을 수정할 때 필요해요. 잊지 않도록 기억해 주세요.
+              {requirePassword
+                ? '나중에 이 기도제목을 수정할 때 필요해요. 잊지 않도록 기억해 주세요.'
+                : '비워두면 기존 비밀번호가 그대로 유지돼요.'}
             </p>
           )}
         </div>

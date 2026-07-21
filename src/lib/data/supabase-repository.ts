@@ -85,7 +85,7 @@ export const supabasePrayerRepository: PrayerRepository = {
     return fromRow(data as PublicRow);
   },
 
-  async update(id, input) {
+  async update(id, input, password) {
     const normalized = normalizeInput(input);
     const { data, error } = await supabase
       .from('prayer_requests')
@@ -95,6 +95,7 @@ export const supabasePrayerRepository: PrayerRepository = {
         is_anonymous: normalized.isAnonymous,
         content: normalized.content,
         updated_at: new Date().toISOString(),
+        ...(password ? { password } : {}),
       })
       .eq('id', id)
       .select(PUBLIC_COLUMNS)

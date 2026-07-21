@@ -59,7 +59,7 @@ export const mockPrayerRepository: PrayerRepository = {
     return toPublic(created);
   },
 
-  async update(id, input) {
+  async update(id, input, password) {
     await delay();
     const index = prayers.findIndex((p) => p.id === id);
     if (index === -1) {
@@ -68,6 +68,7 @@ export const mockPrayerRepository: PrayerRepository = {
     const updated: StoredPrayer = {
       ...prayers[index],
       ...normalizeInput(input),
+      ...(password ? { password } : {}),
       updatedAt: new Date().toISOString(),
     };
     prayers[index] = updated;

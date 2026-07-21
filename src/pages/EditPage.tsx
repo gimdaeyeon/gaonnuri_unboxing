@@ -36,9 +36,9 @@ export function EditPage() {
     };
   }, [id]);
 
-  async function handleSubmit(input: PrayerInput) {
+  async function handleSubmit(input: PrayerInput, password?: string) {
     if (!id) return;
-    await prayerRepository.update(id, input);
+    await prayerRepository.update(id, input, password);
     navigate('/find');
   }
 
@@ -71,6 +71,7 @@ export function EditPage() {
             content: prayer.content,
           }}
           submitLabel="수정 저장"
+          allowPasswordChange
           onSubmit={handleSubmit}
         />
       )}
