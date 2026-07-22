@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { motion, type TargetAndTransition, type Transition } from 'framer-motion';
 
 export type BoxPhase = 'closed' | 'shaking' | 'open';
@@ -40,6 +41,94 @@ const FRONT_FLAPS: Flap[] = [
   { points: '45,116 160,158 120,173 5,131', origin: '102px 137px', delay: 0.1 },
   { points: '160,158 275,116 315,131 200,173', origin: '218px 137px', delay: 0.15 },
 ];
+
+// ── 옆면에 인쇄된 마크 (시안 표지의 FRAGILE·HANDLE 스탬프 + GAONNURI® 브랜드) ──
+// 아이소메트릭 면 위에 얹으려면 면의 기울기만큼 눕혀야 진짜 인쇄된 것처럼 보인다.
+// 왼쪽 면의 가로 방향은 (115,42), 오른쪽 면은 (115,-42)이므로 skewY ±atan(42/115).
+// 마크는 면의 아래쪽(로컬 y 40 이하)에 둔다 — 위쪽은 열린 앞 플랩이 덮는 자리다.
+// 시안대로 취급주의 스탬프 2개는 왼쪽 면에 나란히, 브랜드는 오른쪽 면에 둔다.
+const FACE_SKEW = 20.06;
+const STAMP_W = 52;
+const STAMP_H = 20;
+// 스탬프 두 개가 한 면(로컬 x 0~115)에 들어가야 해서 아이콘은 10×14로 그린 뒤
+// 축소해 쓴다. 축소분만큼 stroke를 굵게 잡아야 선이 사라지지 않는다.
+const ICON_SCALE = 0.7;
+
+function FragileIcon() {
+  return (
+    <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M0.5 0.5 L9.5 0.5 L5 7 Z" />
+      <path d="M5 7 L5 12" />
+      <path d="M1.5 13.5 L8.5 13.5" />
+    </g>
+  );
+}
+
+function GraceIcon() {
+  return (
+    <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path
+        d="M5 10 C1.5 7.5, 1.5 4.8, 3.3 4.8 C4.3 4.8, 5 5.7, 5 5.7 C5 5.7, 5.7 4.8, 6.7 4.8 C8.5 4.8, 8.5 7.5, 5 10 Z"
+        fill="currentColor"
+        stroke="none"
+      />
+      <path d="M0.5 11.5 Q5 15, 9.5 11.5" fill="none" />
+    </g>
+  );
+}
+
+function Stamp({ icon, line1, line2 }: { icon: ReactNode; line1: string; line2: string }) {
+  return (
+    <g>
+      <rect
+        width={STAMP_W}
+        height={STAMP_H}
+        rx="2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.9"
+      />
+      <path d={`M15 0 L15 ${STAMP_H}`} stroke="currentColor" strokeWidth="0.9" />
+      <g transform={`translate(3.5 5) scale(${ICON_SCALE})`}>{icon}</g>
+      <text className="font-accent" x="18" y="9" fontSize="4.4" fill="currentColor">
+        {line1}
+      </text>
+      <text className="font-accent" x="18" y="16" fontSize="4.4" fill="currentColor">
+        {line2}
+      </text>
+    </g>
+  );
+}
+
+function BoxStamps() {
+  return (
+    <g opacity="0.72">
+      {/* 왼쪽 면 — 취급주의 스탬프 2개를 나란히 */}
+      <g transform={`translate(45 116) skewY(${FACE_SKEW}) translate(3 44)`}>
+        <Stamp icon={<FragileIcon />} line1="FRAGILE" line2="STILL LOVED" />
+      </g>
+      <g transform={`translate(45 116) skewY(${FACE_SKEW}) translate(59 44)`}>
+        <Stamp icon={<GraceIcon />} line1="HANDLE" line2="WITH GRACE" />
+      </g>
+      {/* 오른쪽 면 — 브랜드 마크. ®는 Silkscreen에 글리프가 없어 두부(▯)로
+          떨어지므로 본문 폰트로 따로 빼서 작게 올려 붙인다. */}
+      <g transform={`translate(160 158) skewY(${-FACE_SKEW}) translate(57.5 60)`}>
+        <text
+          className="font-accent"
+          textAnchor="middle"
+          fontSize="11"
+          fill="currentColor"
+          letterSpacing="0.5"
+        >
+          GAONNURI
+          <tspan fontFamily="var(--font-body)" fontSize="5.5" dy="-4.5">
+            ®
+          </tspan>
+        </text>
+      </g>
+    </g>
+  );
+}
 
 function FlapPolygon({ flap, isOpen }: { flap: Flap; isOpen: boolean }) {
   return (
@@ -121,6 +210,8 @@ export function UnboxingBoxFront({ phase, reducedMotion, className }: BoxLayerPr
       />
       {/* 앞 세로 모서리 — 왼쪽면/오른쪽면을 갈라 입체감을 만든다 */}
       <path d="M160 158 L160 234" fill="none" stroke="currentColor" strokeWidth="3" />
+
+      <BoxStamps />
 
       {FRONT_FLAPS.map((flap) => (
         <FlapPolygon key={flap.points} flap={flap} isOpen={isOpen} />

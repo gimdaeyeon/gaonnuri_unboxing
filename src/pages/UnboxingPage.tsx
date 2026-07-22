@@ -12,7 +12,6 @@ import {
 } from '@/components/unboxing/UnboxingBox';
 import { BurstRays } from '@/components/unboxing/BurstRays';
 import { Squiggles } from '@/components/unboxing/Squiggles';
-import { StampBadge } from '@/components/unboxing/StampBadge';
 import { PrayerReactionButton } from '@/components/prayer/PrayerReactionButton';
 
 // 카드 우물의 하단(= 카드가 솟아오르는 경계)은 입구의 가장 넓은 선인
@@ -251,8 +250,6 @@ export function UnboxingPage() {
             </button>
           )}
         </div>
-
-        <StampBadge />
       </div>
     </div>
   );
