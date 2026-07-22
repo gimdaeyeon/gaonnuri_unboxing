@@ -153,8 +153,10 @@ export function UnboxingPage() {
 
             {/* 카드 우물 — 하단 경계가 곧 박스 입구. 카드는 여기서 솟아오른다.
                 카드를 우물 바닥에 붙여야(justify-end) y:110%가 카드를 입구 아래로
-                완전히 밀어낸다. 위에 붙이면 우물이 카드보다 클 때 삐져나온다. */}
-            <div className="relative z-10 flex min-h-32 w-full flex-col justify-end overflow-hidden sm:min-h-36">
+                완전히 밀어낸다. 위에 붙이면 우물이 카드보다 클 때 삐져나온다.
+                mb-8은 카드와 박스 사이 여백 — 우물 자체(숨김 판정의 기준)는 안 건드리고
+                버튼·박스만 그만큼 아래로 밀어내 둘을 시각적으로 떼어놓는다. */}
+            <div className="relative z-10 mb-8 flex min-h-32 w-full flex-col justify-end overflow-hidden sm:min-h-36">
               <motion.div
                 initial={{ y: '110%' }}
                 animate={{
