@@ -9,19 +9,28 @@ npm run dev     # http://localhost:5173
 npm run build
 ```
 
-## 페이지
+## 페이지 · 네비게이션
 
-| 경로 | 설명 |
-|------|------|
-| `/` | 언박싱 — 박스를 열면 랜덤 기도제목이 튀어나온다 |
-| `/grid` | 기도제목 그리드 뷰 |
-| `/slide` | 기도제목 슬라이드 뷰 |
-| `/reels` | 기도제목 릴스(풀스크린 스냅 스크롤) 뷰 |
-| `/new` | 새 기도제목 입력 |
-| `/find` | 또래 + 이름으로 내 기도제목 검색 |
-| `/edit/:id` | 기도제목 수정 |
+전역 하단 탭바([BottomTabBar.tsx](src/components/nav/BottomTabBar.tsx), `main.tsx`에서 한 번만
+마운트)가 4개 목적지를 담당한다. 목적지(어디로 갈지)와 표현 방식(어떻게 볼지)을 분리한 게 핵심 —
+그리드·슬라이드·릴스는 전부 「모아보기」 하나로 묶이고, 그 안에서만
+[ViewNav](src/components/prayer/ViewNav.tsx)로 세부 뷰를 전환한다.
 
-그리드/슬라이드/릴스는 [PrayerListLayout](src/components/prayer/PrayerListLayout.tsx) +
+| 탭 | 경로 | 설명 |
+|----|------|------|
+| 언박싱 | `/` | 박스를 열면 랜덤 기도제목이 튀어나온다 |
+| 모아보기 | `/grid` (활성: `/grid` `/slide` `/reels`) | 그리드·슬라이드·릴스 세그먼트 |
+| 남기기 | `/new` | 새 기도제목 입력 |
+| 내 기도제목 | `/find` (활성: `/find` `/edit/*`) | 또래 + 이름으로 검색·수정 |
+
+새 목적지를 추가할 땐 `BottomTabBar`의 `TABS` 배열만 고치면 된다.
+
+폼(`/new` `/find` `/edit/:id`)의 "뒤로"는 항상 왔던 곳으로 돌아간다 —
+[useReturnTo](src/lib/use-return-to.ts)가 `Link`/`navigate`의 `state.from`을 읽고,
+직접 URL로 들어와 state가 없으면 각 폼의 fallback(`/new`→`/grid`, `/find`→`/`,
+`/edit/:id`→`/find`)으로 간다. 탭바가 폼 링크에 `state.from`을 자동으로 실어준다.
+
+그리드/슬라이드는 [PrayerListLayout](src/components/prayer/PrayerListLayout.tsx) +
 [usePrayers](src/lib/use-prayers.ts)를 공유하고, 언박싱 전용 UI는
 [src/components/unboxing/](src/components/unboxing) 아래에 있다.
 

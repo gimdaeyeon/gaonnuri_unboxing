@@ -117,7 +117,8 @@ export function UnboxingPage() {
     <div className="relative min-h-dvh overflow-hidden bg-bg">
       <Squiggles reducedMotion={!!prefersReducedMotion} />
 
-      <div className="relative mx-auto flex min-h-dvh max-w-2xl flex-col items-center gap-8 px-4 py-10 text-center sm:px-6">
+      {/* 하단 탭바(3.5rem+세이프에어리어)만큼 빼서 히어로가 그 위에서 마무리되게 한다 */}
+      <div className="relative mx-auto flex min-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] max-w-2xl flex-col items-center gap-8 px-4 py-10 text-center sm:px-6">
         <header className="flex flex-col items-center">
           <p className="font-accent text-xs uppercase tracking-[0.2em] text-text-muted">
             2026 Gaonnuri Summer Retreat
@@ -252,15 +253,6 @@ export function UnboxingPage() {
         </div>
 
         <StampBadge />
-
-        <nav className="flex flex-wrap items-center justify-center gap-4 text-sm text-text-muted">
-          <Link to="/grid" className="hover:text-text">
-            그리드로 보기
-          </Link>
-          <Link to="/new" className="hover:text-text">
-            기도제목 남기기
-          </Link>
-        </nav>
       </div>
     </div>
   );

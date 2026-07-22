@@ -1,7 +1,9 @@
 import { NavLink } from 'react-router';
 
+// 그리드/슬라이드/릴스 — 같은 데이터를 보여주는 방식만 바꾸는 세그먼트.
+// 어디로 갈지는 BottomTabBar(「모아보기」)가 담당하고, 여기는 순수하게
+// 표현 방식 전환만 다룬다.
 const NAV_ITEMS: { to: string; label: string; end: boolean }[] = [
-  { to: '/', label: '언박싱', end: true },
   { to: '/grid', label: '그리드', end: false },
   { to: '/slide', label: '슬라이드', end: false },
   { to: '/reels', label: '릴스', end: false },

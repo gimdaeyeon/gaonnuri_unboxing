@@ -19,7 +19,7 @@ export function NotFoundPage() {
           to="/grid"
           className="rounded-theme border border-border px-4 py-2 text-sm font-medium text-text-muted hover:text-text"
         >
-          그리드로 보기
+          모아보기
         </Link>
       </div>
     </div>

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import type { PrayerRequest } from '@/lib/types';
 import { getDisplayName } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -13,17 +13,32 @@ interface SlideViewProps {
 
 const SWIPE_DISTANCE = 60;
 const SWIPE_VELOCITY = 400;
+const AUTO_ADVANCE_MS = 6000;
 
 export function SlideView({ prayers, onReacted }: SlideViewProps) {
   const [[index, direction], setPage] = useState<[number, number]>([0, 0]);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
   const total = prayers.length;
 
-  function paginate(dir: number) {
-    setPage(([current]) => {
-      const next = (current + dir + total) % total;
-      return [next, dir];
-    });
-  }
+  const paginate = useCallback(
+    (dir: number) => {
+      setPage(([current]) => {
+        const next = (current + dir + total) % total;
+        return [next, dir];
+      });
+    },
+    [total],
+  );
+
+  // 드래그 중이거나 일시정지 상태면 자동 넘김을 멈춘다. index가 바뀔 때마다
+  // (자동이든 수동 클릭·스와이프든) 타이머가 새로 시작된다 — setInterval 대신
+  // setTimeout을 써서 일시정지 후 재생 시 밀린 시간이 누적되지 않게 한다.
+  useEffect(() => {
+    if (!isPlaying || isDragging || total <= 1) return;
+    const id = setTimeout(() => paginate(1), AUTO_ADVANCE_MS);
+    return () => clearTimeout(id);
+  }, [index, isPlaying, isDragging, total, paginate]);
 
   if (total === 0) return null;
   const prayer = prayers[index];
@@ -47,7 +62,9 @@ export function SlideView({ prayers, onReacted }: SlideViewProps) {
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.6}
+            onDragStart={() => setIsDragging(true)}
             onDragEnd={(_, info) => {
+              setIsDragging(false);
               if (info.offset.x < -SWIPE_DISTANCE || info.velocity.x < -SWIPE_VELOCITY) {
                 paginate(1);
               } else if (info.offset.x > SWIPE_DISTANCE || info.velocity.x > SWIPE_VELOCITY) {
@@ -90,6 +107,16 @@ export function SlideView({ prayers, onReacted }: SlideViewProps) {
         >
           <ChevronRight />
         </Button>
+        {total > 1 && (
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label={isPlaying ? '자동 넘김 멈추기' : '자동 넘김 재생'}
+            onClick={() => setIsPlaying((prev) => !prev)}
+          >
+            {isPlaying ? <Pause /> : <Play />}
+          </Button>
+        )}
       </div>
     </div>
   );

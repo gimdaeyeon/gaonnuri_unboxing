@@ -9,10 +9,13 @@ import { PrayerForm } from '@/components/prayer/PrayerForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useReturnTo } from '@/lib/use-return-to';
+import { TAB_BAR_PAD } from '@/components/nav/BottomTabBar';
 
 export function EditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const returnTo = useReturnTo('/find');
   const [prayer, setPrayer] = useState<PrayerRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -39,14 +42,14 @@ export function EditPage() {
   async function handleSubmit(input: PrayerInput, password?: string) {
     if (!id) return;
     await prayerRepository.update(id, input, password);
-    navigate('/find');
+    navigate(returnTo);
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col gap-8 px-4 py-8 sm:px-6">
+    <div className={`mx-auto flex min-h-dvh max-w-xl flex-col gap-8 px-4 py-8 sm:px-6 ${TAB_BAR_PAD}`}>
       <header className="flex flex-col gap-4">
-        <Link to="/find" className="flex items-center gap-1 text-sm text-text-muted hover:text-text">
-          <ArrowLeft className="size-4" /> 검색으로
+        <Link to={returnTo} className="flex items-center gap-1 text-sm text-text-muted hover:text-text">
+          <ArrowLeft className="size-4" /> 뒤로
         </Link>
         <h1 className="font-heading text-2xl font-bold">기도제목 수정</h1>
       </header>

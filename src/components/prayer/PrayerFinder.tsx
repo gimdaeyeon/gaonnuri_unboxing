@@ -83,7 +83,9 @@ export function PrayerFinder() {
               <li key={prayer.id} className="flex flex-col gap-2">
                 <PrayerCard prayer={prayer} onReacted={handleReacted} />
                 <Button asChild variant="outline" className="self-end">
-                  <Link to={`/edit/${prayer.id}`}>수정</Link>
+                  <Link to={`/edit/${prayer.id}`} state={{ from: '/find' }}>
+                    수정
+                  </Link>
                 </Button>
               </li>
             ))}

@@ -2,6 +2,7 @@ import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { BottomTabBar } from '@/components/nav/BottomTabBar'
 import './index.css'
 
 const UnboxingPage = lazy(() =>
@@ -21,6 +22,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeToggle />
+      <BottomTabBar />
       <Suspense
         fallback={
           <p className="py-20 text-center text-text-muted">불러오는 중…</p>
