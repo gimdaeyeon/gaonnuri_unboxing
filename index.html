@@ -29,7 +29,10 @@
 
     <!-- Open Graph — 카카오톡 등에서 미리보기 카드로 쓰인다. 배포 도메인이
          바뀌면(예: 커스텀 도메인 연결) og:image·og:url·twitter:image의
-         절대경로만 새 도메인으로 바꾸면 된다. -->
+         절대경로만 새 도메인으로 바꾸면 된다.
+         og:image의 ?v= 는 카카오톡 자체 서버 캐시(디버거 캐시와 별개, URL을 키로
+         며칠씩 유지됨)를 우회하기 위한 것 — og_img.png를 새로 교체할 때마다
+         이 숫자를 올려야 카톡 채팅에도 새 이미지가 반영된다. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Unboxing" />
     <meta property="og:title" content="Unboxing — 2026 가온누리 여름수련회 기도제목" />
@@ -37,7 +40,7 @@
       property="og:description"
       content="박스를 열면 랜덤으로 기도제목이 나와요. 함께 기도해요!"
     />
-    <meta property="og:image" content="https://gaonnuri-unboxing.netlify.app/og_img.png" />
+    <meta property="og:image" content="https://gaonnuri-unboxing.netlify.app/og_img.png?v=2" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="https://gaonnuri-unboxing.netlify.app/" />
@@ -47,7 +50,7 @@
       name="twitter:description"
       content="박스를 열면 랜덤으로 기도제목이 나와요. 함께 기도해요!"
     />
-    <meta name="twitter:image" content="https://gaonnuri-unboxing.netlify.app/og_img.png" />
+    <meta name="twitter:image" content="https://gaonnuri-unboxing.netlify.app/og_img.png?v=2" />
   </head>
   <body>
     <div id="root"></div>
