@@ -24,7 +24,7 @@ export function ReelsView({ prayers, onReacted }: ReelsViewProps) {
           </p>
           <footer className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-2 text-text-muted">
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              <span className="rounded-full bg-primary/15 px-3 py-1 text-sm font-semibold text-primary-ink">
                 {prayer.cohort}또래
               </span>
               <span className="text-sm font-medium">{getDisplayName(prayer)}</span>

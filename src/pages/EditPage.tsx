@@ -115,7 +115,7 @@ function PasswordGate({ id, prayer, onUnlock }: PasswordGateProps) {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       <div className="rounded-theme border border-border bg-surface px-4 py-3 text-sm">
-        <span className="font-semibold text-primary">{prayer.cohort}또래</span>{' '}
+        <span className="font-semibold text-primary-ink">{prayer.cohort}또래</span>{' '}
         <span>{getDisplayName(prayer)}</span> 님의 기도제목을 수정하려면 비밀번호를 입력해 주세요.
       </div>
       <div className="flex flex-col gap-2">

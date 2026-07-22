@@ -61,7 +61,7 @@ export function SlideView({ prayers, onReacted }: SlideViewProps) {
             </p>
             <footer className="flex flex-col items-center gap-4">
               <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
-                <span className="font-semibold text-primary">{prayer.cohort}또래</span>
+                <span className="font-semibold text-primary-ink">{prayer.cohort}또래</span>
                 <span>{getDisplayName(prayer)}</span>
               </div>
               <PrayerReactionButton prayer={prayer} onReacted={onReacted} />

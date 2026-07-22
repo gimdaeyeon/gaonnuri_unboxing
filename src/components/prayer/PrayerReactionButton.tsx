@@ -37,9 +37,9 @@ export function PrayerReactionButton({ prayer, onReacted }: PrayerReactionButton
       disabled={reacted}
       onClick={handleClick}
       aria-pressed={reacted}
-      className={reacted ? 'bg-primary/10 text-primary hover:bg-primary/10' : undefined}
+      className={reacted ? 'bg-primary/15 text-primary-ink hover:bg-primary/15' : undefined}
     >
-      <HeartHandshake className={reacted ? 'fill-primary' : undefined} />
+      <HeartHandshake className={reacted ? 'fill-current' : undefined} />
       함께 기도해요 {prayer.prayCount}
     </Button>
   );
