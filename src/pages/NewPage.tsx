@@ -23,7 +23,12 @@ export function NewPage() {
         </Link>
         <h1 className="font-heading text-2xl font-bold">기도제목 남기기</h1>
       </header>
-      <PrayerForm requirePassword submitLabel="기도제목 올리기" onSubmit={handleSubmit} />
+      <PrayerForm
+        requirePassword
+        checkDuplicate
+        submitLabel="기도제목 올리기"
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

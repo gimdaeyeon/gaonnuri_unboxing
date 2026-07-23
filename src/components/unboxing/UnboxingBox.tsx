@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { motion, type TargetAndTransition, type Transition } from 'framer-motion';
 
-export type BoxPhase = 'closed' | 'shaking' | 'open';
+export type BoxPhase = 'closed' | 'open';
 
 interface BoxLayerProps {
   phase: BoxPhase;
+  shaking?: boolean;
   reducedMotion?: boolean;
   className?: string;
 }
@@ -22,6 +23,29 @@ const VIEW_BOX = '0 0 320 250';
 
 const flapTransition = { duration: 0.45, ease: [0.16, 1, 0.3, 1] } as const;
 const lidTransition = { duration: 0.2, ease: 'easeOut' } as const;
+
+// 흔들림(shaking)과 닫힘 상태의 숨쉬기 펄스는 앞/뒤 레이어가 항상 같은
+// 값으로 회전해야 한 덩어리처럼 보인다 — 두 레이어 중 하나만 이 값을
+// 쓰면 위쪽 뒤 플랩(날개)만 제자리에 남아 어긋나 보인다.
+function useShakeAnimation(
+  isOpen: boolean,
+  shaking: boolean | undefined,
+  reducedMotion: boolean | undefined,
+): { animate: TargetAndTransition; transition: Transition } {
+  if (!reducedMotion && shaking) {
+    return {
+      animate: { rotate: [0, -5, 4, -3, 2, 0], scale: 1 },
+      transition: { duration: 0.42, ease: 'easeInOut' },
+    };
+  }
+  if (!reducedMotion && !isOpen) {
+    return {
+      animate: { rotate: 0, scale: [1, 1.03, 1] },
+      transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+    };
+  }
+  return { animate: { rotate: 0, scale: 1 }, transition: { duration: 0.2 } };
+}
 
 // 각 플랩은 경첩 변을 바깥으로 밀어낸 평행사변형. 펼쳐질 때
 // 경첩 변의 중점을 transformOrigin 삼아 scale로 자라나게 한다
@@ -147,11 +171,12 @@ function FlapPolygon({ flap, isOpen }: { flap: Flap; isOpen: boolean }) {
 
 // 박스 뒤쪽 — 카드보다 아래(z-0)에 깔린다. 닫혀 있을 땐 전부 투명해서
 // 앞 레이어의 뚜껑만 보인다.
-export function UnboxingBoxBack({ phase, className }: BoxLayerProps) {
+export function UnboxingBoxBack({ phase, shaking, reducedMotion, className }: BoxLayerProps) {
   const isOpen = phase === 'open';
+  const { animate, transition } = useShakeAnimation(isOpen, shaking, reducedMotion);
 
   return (
-    <svg viewBox={VIEW_BOX} className={className}>
+    <motion.svg viewBox={VIEW_BOX} className={className} animate={animate} transition={transition}>
       {/* 내부 어둠 — 열리면 드러나는 박스 안쪽 */}
       <motion.polygon
         points="45,116 160,74 275,116 160,158"
@@ -172,26 +197,19 @@ export function UnboxingBoxBack({ phase, className }: BoxLayerProps) {
       {BACK_FLAPS.map((flap) => (
         <FlapPolygon key={flap.points} flap={flap} isOpen={isOpen} />
       ))}
-    </svg>
+    </motion.svg>
   );
 }
 
 // 박스 앞쪽 — 카드보다 위(z-20). 앞쪽 림이 카드 아랫부분을 덮어
 // "박스에 꽂혀 있는" 느낌을 만든다.
-export function UnboxingBoxFront({ phase, reducedMotion, className }: BoxLayerProps) {
+export function UnboxingBoxFront({ phase, shaking, reducedMotion, className }: BoxLayerProps) {
   const isOpen = phase === 'open';
 
-  // 흔들림과 숨쉬기 펄스는 이 레이어에만 준다. 닫힌 상태에서는
-  // 뒤 레이어가 전부 투명하므로 두 레이어가 어긋나 보일 일이 없다.
-  let animate: TargetAndTransition = { rotate: 0, scale: 1 };
-  let transition: Transition = { duration: 0.2 };
-  if (!reducedMotion && phase === 'shaking') {
-    animate = { rotate: [0, -3, 3, -2, 2, 0], scale: 1 };
-    transition = { duration: 0.4 };
-  } else if (!reducedMotion && phase === 'closed') {
-    animate = { rotate: 0, scale: [1, 1.03, 1] };
-    transition = { duration: 2, repeat: Infinity, ease: 'easeInOut' };
-  }
+  // 뒤 레이어(UnboxingBoxBack)와 정확히 같은 회전/스케일을 써야 앞뒤가
+  // 한 덩어리로 흔들린다 — 값이 어긋나면 위쪽 뒤 플랩(날개)만 제자리에
+  // 남아있는 것처럼 보인다.
+  const { animate, transition } = useShakeAnimation(isOpen, shaking, reducedMotion);
 
   return (
     <motion.svg

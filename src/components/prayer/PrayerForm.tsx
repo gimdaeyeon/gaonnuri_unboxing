@@ -1,7 +1,19 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Info } from 'lucide-react';
 import type { PrayerInput } from '@/lib/types';
+import { prayerRepository } from '@/lib/data/prayer-repository';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +29,9 @@ interface PrayerFormProps {
   requirePassword?: boolean;
   // allowPasswordChange일 때 비밀번호 필드를 선택 입력으로 노출한다. (수정 — 비워두면 기존 비밀번호 유지)
   allowPasswordChange?: boolean;
+  // 켜두면 제출 전 같은 또래+이름의 기존 기도제목을 조회해 한 번 안내한다.
+  // 수정 화면(EditPage)은 자기 자신과 항상 매칭되므로 끈 채로 둔다.
+  checkDuplicate?: boolean;
   onSubmit: (input: PrayerInput, password?: string) => Promise<void>;
 }
 
@@ -32,6 +47,7 @@ export function PrayerForm({
   submitLabel,
   requirePassword = false,
   allowPasswordChange = false,
+  checkDuplicate = false,
   onSubmit,
 }: PrayerFormProps) {
   const showPasswordField = requirePassword || allowPasswordChange;
@@ -44,6 +60,14 @@ export function PrayerForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // 확인 다이얼로그에 띄울 개수. 또래/이름이 바뀌면 다시 확인해야 하므로 리셋된다.
+  const [duplicateCount, setDuplicateCount] = useState(0);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  function resetDuplicateNotice() {
+    setDuplicateCount(0);
+    setConfirmOpen(false);
+  }
 
   function validate(): FieldErrors {
     const next: FieldErrors = {};
@@ -64,12 +88,7 @@ export function PrayerForm({
     return next;
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const nextErrors = validate();
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
+  async function submitNow() {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -88,6 +107,37 @@ export function PrayerForm({
     }
   }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    if (checkDuplicate) {
+      setSubmitting(true);
+      let hasDuplicate = false;
+      try {
+        const existing = await prayerRepository.findByAuthor(cohort.trim(), authorName.trim());
+        if (existing.length > 0) {
+          hasDuplicate = true;
+          setDuplicateCount(existing.length);
+          setConfirmOpen(true);
+        }
+      } catch {
+        // 중복 확인은 편의 기능일 뿐이므로 실패해도 저장은 막지 않는다(fail-open).
+      }
+      setSubmitting(false);
+      if (hasDuplicate) return;
+    }
+
+    await submitNow();
+  }
+
+  function handleConfirmDuplicate() {
+    setConfirmOpen(false);
+    void submitNow();
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
       <div className="grid grid-cols-[7rem_1fr] gap-4">
@@ -99,7 +149,10 @@ export function PrayerForm({
             maxLength={2}
             placeholder="99"
             value={cohort}
-            onChange={(e) => setCohort(e.target.value.replace(/\D/g, ''))}
+            onChange={(e) => {
+              setCohort(e.target.value.replace(/\D/g, ''));
+              resetDuplicateNotice();
+            }}
             aria-invalid={!!errors.cohort}
           />
         </div>
@@ -109,7 +162,10 @@ export function PrayerForm({
             id="authorName"
             placeholder="홍길동"
             value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
+            onChange={(e) => {
+              setAuthorName(e.target.value);
+              resetDuplicateNotice();
+            }}
             aria-invalid={!!errors.authorName}
           />
         </div>
@@ -120,6 +176,25 @@ export function PrayerForm({
       <p className="-mt-3 text-sm text-text-muted">
         또래와 이름은 나중에 내 기도제목을 찾아 수정할 때 필요해요.
       </p>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <Info className="text-accent" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>이미 같은 또래·이름이 있어요</AlertDialogTitle>
+            <AlertDialogDescription>
+              &lsquo;{cohort}또래 {authorName}&rsquo;(으)로 올린 기도제목이 {duplicateCount}개 있어요.
+              계속 올릴까요?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDuplicate}>그래도 올리기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex items-center justify-between rounded-theme border border-border bg-surface px-4 py-3">
         <div className="flex flex-col gap-0.5">

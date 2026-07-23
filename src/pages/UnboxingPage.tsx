@@ -55,6 +55,7 @@ export function UnboxingPage() {
   const [phase, setPhase] = useState<BoxPhase>('closed');
   const [current, setCurrent] = useState<PrayerRequest | null>(null);
   const [cardVisible, setCardVisible] = useState(false);
+  const [shaking, setShaking] = useState(false);
   const [revealKey, setRevealKey] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const hasDrawnOnce = phase !== 'closed';
@@ -81,25 +82,32 @@ export function UnboxingPage() {
     setIsAnimating(true);
 
     if (phase === 'closed') {
-      setPhase('shaking');
-      await wait(prefersReducedMotion ? 0 : 380);
+      // 첫 추첨 — 닫힌 상자를 흔든 뒤 연다.
+      setShaking(true);
+      await wait(prefersReducedMotion ? 0 : 420);
       if (!mountedRef.current) return;
+      setShaking(false);
     } else {
-      // 이미 카드가 떠 있으면 먼저 박스 안으로 되돌려 보낸다.
+      // 재추첨 — 카드를 상자 안으로 쏙 내려보내고, 열린 상자를 흔든다.
+      // 상자를 다시 닫지 않아 "흔들자 새 카드가 슈욱 솟는" 느낌만 남긴다.
       setCardVisible(false);
-      await wait(prefersReducedMotion ? 0 : 300);
+      await wait(prefersReducedMotion ? 0 : 220);
       if (!mountedRef.current) return;
+      setShaking(true);
+      await wait(prefersReducedMotion ? 0 : 360);
+      if (!mountedRef.current) return;
+      setShaking(false);
     }
 
     setCurrent(queueRef.current.next() ?? null);
     setPhase('open');
     setRevealKey((k) => k + 1);
 
-    // 날개가 펼쳐지고 광선이 터진 다음에 카드가 올라오도록 한 박자 쉰다.
-    await wait(prefersReducedMotion ? 0 : 260);
+    // 상자가 열리고 광선이 터진 직후 카드가 슈욱 솟아오른다.
+    await wait(prefersReducedMotion ? 0 : 140);
     if (!mountedRef.current) return;
     setCardVisible(true);
-    await wait(prefersReducedMotion ? 0 : 200);
+    await wait(prefersReducedMotion ? 0 : 220);
     if (!mountedRef.current) return;
     setIsAnimating(false);
   }
@@ -147,6 +155,7 @@ export function UnboxingPage() {
           <div className="relative mx-auto w-full max-w-[380px]">
             <UnboxingBoxBack
               phase={phase}
+              shaking={shaking}
               reducedMotion={!!prefersReducedMotion}
               className={`${BOX_LAYER_CLASS} z-0`}
             />
@@ -158,16 +167,24 @@ export function UnboxingPage() {
                 버튼·박스만 그만큼 아래로 밀어내 둘을 시각적으로 떼어놓는다. */}
             <div className="relative z-10 mb-8 flex min-h-32 w-full flex-col justify-end overflow-hidden sm:min-h-36">
               <motion.div
-                initial={{ y: '110%' }}
+                initial={{ y: '120%', scale: 0.35 }}
                 animate={{
-                  y: cardVisible ? '0%' : '110%',
+                  y: cardVisible ? '0%' : '120%',
+                  scale: cardVisible ? 1 : 0.35,
                   opacity: prefersReducedMotion && !cardVisible ? 0 : 1,
                 }}
                 transition={
                   prefersReducedMotion
                     ? { duration: 0.15 }
-                    : { type: 'spring', stiffness: 220, damping: 24 }
+                    : cardVisible
+                      ? // 나올 때 — 살짝 오버슈트하며 탄력있게 슈욱 솟는다.
+                        { type: 'spring', stiffness: 300, damping: 20, mass: 0.7 }
+                      : // 들어갈 때 — 빠르게 쏙 내려가 상자 안으로 사라진다.
+                        { duration: 0.2, ease: [0.4, 0, 1, 1] }
                 }
+                // 입구(하단)를 기준으로 커지게 해 상자 안에서 작게 나와
+                // 슈욱 솟아오르는 느낌을 만든다.
+                style={{ transformOrigin: 'bottom center' }}
                 className="flex w-full flex-col items-center gap-3 rounded-theme border border-border bg-surface px-5 py-6 sm:px-7"
               >
                 {current ? (
@@ -224,6 +241,7 @@ export function UnboxingPage() {
 
             <UnboxingBoxFront
               phase={phase}
+              shaking={shaking}
               reducedMotion={!!prefersReducedMotion}
               className={`${BOX_LAYER_CLASS} z-20`}
             />

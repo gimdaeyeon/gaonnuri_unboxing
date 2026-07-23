@@ -58,7 +58,7 @@ export function Squiggles({ reducedMotion }: SquigglesProps) {
           viewBox="0 0 60 30"
           width={s.size}
           height={s.size / 2}
-          className="absolute opacity-70"
+          className="absolute overflow-visible opacity-70"
           style={{ top: s.top, left: s.left }}
           animate={reducedMotion ? undefined : { y: [0, -8, 0], rotate: [0, 6, 0] }}
           transition={{ duration: s.duration, repeat: Infinity, ease: 'easeInOut' }}
