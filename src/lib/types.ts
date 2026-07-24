@@ -3,7 +3,7 @@ export interface PrayerRequest {
   authorName: string;      // 이름 (검색·수정 식별 키, 필수)
   cohort: string;          // 또래 = 출생연도 뒤 2자리 (예: '99'). 검색·수정 식별 키, 필수
   isAnonymous: boolean;    // true면 공개 목록에서 이름만 '익명'으로 표시 (검색에는 영향 없음)
-  content: string;         // 기도제목 본문
+  content: string;
   prayCount: number;       // '함께 기도해요' 반응 수 (브라우저 기준 중복 방지, 인증 없음)
   createdAt: string;       // ISO 8601
   updatedAt: string;       // ISO 8601

@@ -1,7 +1,7 @@
 // Supabase 구현 — prayer_requests 테이블.
 // 컬럼(snake_case): id, author_name, cohort, is_anonymous, content, pray_count,
 //                   password, created_at, updated_at
-// 보안 수준: mock과 동일 (비밀번호 평문, 누구나 읽기/쓰기) — 교회 내부용.
+// 보안 수준: 비밀번호 평문, 누구나 읽기/쓰기 — 교회 내부용.
 // password는 절대 목록/단건 조회 select에 포함하지 않는다. 검증은 verifyPassword로만.
 
 import { supabase } from '@/lib/supabase/client';

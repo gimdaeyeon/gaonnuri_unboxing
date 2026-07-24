@@ -53,20 +53,10 @@ JSX 수정이 필요 없다. 구체 색상 클래스(`bg-indigo-500` 등)는 금
 (`text-primary-ink`)이다 — 라이트 배경 위 라임 글자는 대비가 안 나와 어두운 값으로 분리했다.
 새 컴포넌트에서 라임을 글자색으로 쓸 땐 반드시 `text-primary-ink`를 쓸 것.
 
-### 2. mock → Supabase 전환
+### 2. 데이터 접근
 
-모든 데이터 접근은 `prayerRepository` 인터페이스를 경유합니다
-(컴포넌트에서 mock 직접 import 금지).
-
-1. `npm i @supabase/supabase-js`
-2. `.env.local.example` → `.env.local` 복사 후 값 입력
-3. [src/lib/supabase/client.ts](src/lib/supabase/client.ts) 주석 해제
-4. [src/lib/data/supabase-repository.ts](src/lib/data/supabase-repository.ts)의 메서드 구현 (주석에 쿼리 예시 있음)
-5. [src/lib/data/prayer-repository.ts](src/lib/data/prayer-repository.ts)의 **한 줄** 교체:
-
-```ts
-export const prayerRepository: PrayerRepository = supabasePrayerRepository;
-```
+모든 데이터 접근은 `prayerRepository` 인터페이스([src/lib/data/prayer-repository.ts](src/lib/data/prayer-repository.ts))를
+경유하며, 실제 구현은 [src/lib/data/supabase-repository.ts](src/lib/data/supabase-repository.ts)다.
 
 테이블: `prayer_requests` — 컬럼은 snake_case (`author_name`, `cohort`,
 `is_anonymous`, `category`, `content`, `created_at`, `updated_at`).
@@ -76,4 +66,3 @@ export const prayerRepository: PrayerRepository = supabasePrayerRepository;
 
 - **또래+이름**이 검색·수정의 식별 키 (익명 글도 검색 가능 — 익명은 목록 표시만 가림)
 - 인증 없음 — 교회 내부 신뢰 전제 (의도된 설계)
-- mock 데이터는 메모리 저장이라 새로고침 시 초기화됨 (mock 단계에선 정상)

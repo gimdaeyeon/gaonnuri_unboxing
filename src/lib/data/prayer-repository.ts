@@ -1,5 +1,4 @@
 import type { PrayerRequest, PrayerInput } from '@/lib/types';
-// import { mockPrayerRepository } from './mock-repository'; // 로컬 개발용 fallback
 import { supabasePrayerRepository } from './supabase-repository';
 
 export interface PrayerRepository {
@@ -14,6 +13,4 @@ export interface PrayerRepository {
   verifyPassword(id: string, password: string): Promise<boolean>;
 }
 
-// ★ mock으로 되돌릴 땐 이 한 줄만 교체
 export const prayerRepository: PrayerRepository = supabasePrayerRepository;
-// export const prayerRepository: PrayerRepository = mockPrayerRepository;
