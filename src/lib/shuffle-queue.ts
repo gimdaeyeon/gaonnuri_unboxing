@@ -1,17 +1,27 @@
+import { weightedShuffle } from '@/lib/weighted-shuffle';
+
 // 중복 없이 순회하는 랜덤 큐. 전체를 셔플해 순서대로 소비하고,
 // 다 소비하면 재셔플한다 (직전 마지막 항목이 다음 셔플의 첫 항목과
 // 겹치면 한 칸 밀어내 "방금 본 걸 또 보는" 체감을 줄인다).
 // 항목 동일성은 getKey로 판단한다 — 반응(좋아요) 갱신처럼 객체 참조가
 // 바뀌어도(같은 id의 새 객체) 같은 항목으로 인식하기 위함.
+// getWeight를 주면 균등 셔플 대신 가중치 셔플을 쓴다 — 가중치가 큰 항목일수록
+// 매 사이클마다 앞쪽(= 먼저 뽑힘)에 나올 확률이 높아진다.
 export class ShuffleQueue<T> {
   private items: T[];
   private getKey: (item: T) => unknown;
+  private getWeight?: (item: T) => number;
   private queue: T[] = [];
   private lastKey: unknown;
 
-  constructor(items: T[], getKey: (item: T) => unknown = (item) => item) {
+  constructor(
+    items: T[],
+    getKey: (item: T) => unknown = (item) => item,
+    getWeight?: (item: T) => number,
+  ) {
     this.items = items;
     this.getKey = getKey;
+    this.getWeight = getWeight;
   }
 
   update(items: T[]) {
@@ -23,7 +33,7 @@ export class ShuffleQueue<T> {
   next(): T | undefined {
     if (this.items.length === 0) return undefined;
     if (this.queue.length === 0) {
-      this.queue = shuffle(this.items);
+      this.queue = this.getWeight ? weightedShuffle(this.items, this.getWeight) : shuffle(this.items);
       if (this.queue.length > 1 && this.getKey(this.queue[0]) === this.lastKey) {
         [this.queue[0], this.queue[1]] = [this.queue[1], this.queue[0]];
       }

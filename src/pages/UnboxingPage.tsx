@@ -5,6 +5,7 @@ import type { PrayerRequest } from '@/lib/types';
 import { getDisplayName } from '@/lib/types';
 import { usePrayers } from '@/lib/use-prayers';
 import { ShuffleQueue } from '@/lib/shuffle-queue';
+import { prayCountWeight } from '@/lib/weighted-shuffle';
 import {
   UnboxingBoxBack,
   UnboxingBoxFront,
@@ -60,7 +61,9 @@ export function UnboxingPage() {
   const [isAnimating, setIsAnimating] = useState(false);
   const hasDrawnOnce = phase !== 'closed';
 
-  const queueRef = useRef(new ShuffleQueue<PrayerRequest>([], (p) => p.id));
+  const queueRef = useRef(
+    new ShuffleQueue<PrayerRequest>([], (p) => p.id, (p) => prayCountWeight(p.prayCount)),
+  );
   const mountedRef = useRef(true);
 
   useEffect(() => {
