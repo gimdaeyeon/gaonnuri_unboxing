@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import type { PrayerRequest } from '@/lib/types';
 import { getDisplayName } from '@/lib/types';
 import { usePrayers } from '@/lib/use-prayers';
+import { markDrawn } from '@/lib/drawn-storage';
 import { ShuffleQueue } from '@/lib/shuffle-queue';
 import { prayCountWeight } from '@/lib/weighted-shuffle';
 import {
@@ -102,7 +103,10 @@ export function UnboxingPage() {
       setShaking(false);
     }
 
-    setCurrent(queueRef.current.next() ?? null);
+    // 뽑은 기도제목은 기록해 둔다 — 모아보기 「내가 뽑은 기도제목」이 이 기록을 읽는다.
+    const drawn = queueRef.current.next() ?? null;
+    if (drawn) markDrawn(drawn.id);
+    setCurrent(drawn);
     setPhase('open');
     setRevealKey((k) => k + 1);
 

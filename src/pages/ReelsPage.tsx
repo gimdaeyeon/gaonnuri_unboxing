@@ -18,8 +18,11 @@ export function ReelsPage() {
       ) : (
         <ReelsView prayers={prayers} onReacted={handleReacted} />
       )}
-      <div className="fixed left-1/2 top-4 -translate-x-1/2">
-        <ViewNav />
+      {/* inset-x-0 + justify-center로 가운데를 맞춘다 — left-1/2는 고정 요소의 폭을
+          화면 절반으로 가둬 버려서 탭 이름이 줄바꿈된다. 스와이프를 막지 않도록
+          네비 자신(pointer-events-auto)만 클릭을 받는다. */}
+      <div className="pointer-events-none fixed inset-x-0 top-4 flex justify-center px-4">
+        <ViewNav centered />
       </div>
     </div>
   );

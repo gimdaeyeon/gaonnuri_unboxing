@@ -7,7 +7,7 @@ interface PrayerListLayoutProps {
 }
 
 // 그리드/슬라이드 페이지가 공유하는 헤더(제목 + 뷰 네비). 찾기·추가 이동은
-// 이제 전역 BottomTabBar가 담당하므로 여기서는 표현 방식 전환만 다룬다.
+// 이제 전역 BottomTabBar가 담당하므로 여기서는 범위·표현 방식 전환만 다룬다.
 export function PrayerListLayout({ children }: PrayerListLayoutProps) {
   return (
     <div className={`mx-auto flex min-h-dvh max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 ${TAB_BAR_PAD}`}>
