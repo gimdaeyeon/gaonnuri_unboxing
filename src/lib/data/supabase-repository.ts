@@ -105,23 +105,13 @@ export const supabasePrayerRepository: PrayerRepository = {
   },
 
   async incrementPrayCount(id) {
-    // 원자적 증가가 아닌 읽기-후-쓰기. 동시 클릭 시 드물게 카운트가 1 손실될 수 있으나
-    // 교회 내부 소규모 사용 환경에서는 허용 가능한 수준. 필요해지면 RPC로 전환.
-    const { data: current, error: fetchError } = await supabase
-      .from('prayer_requests')
-      .select('pray_count')
-      .eq('id', id)
-      .single();
-    if (fetchError) throw fetchError;
-
-    const { data, error } = await supabase
-      .from('prayer_requests')
-      .update({ pray_count: current.pray_count + 1 })
-      .eq('id', id)
-      .select(PUBLIC_COLUMNS)
-      .single();
+    // 증가는 DB 안에서 한 문장으로 처리한다(0002 마이그레이션). 클라이언트에서
+    // 읽고-더하고-쓰면 동시에 누른 사람들이 같은 값을 읽어 카운트가 증발한다.
+    const { data, error } = await supabase.rpc('increment_pray_count', { p_id: id });
     if (error) throw error;
-    return fromRow(data as PublicRow);
+    // 해당 id의 행이 없으면 갱신된 행이 없어 null이 온다.
+    if (data === null) throw new Error(`기도제목을 찾을 수 없습니다: ${id}`);
+    return data;
   },
 
   async verifyPassword(id, password) {
