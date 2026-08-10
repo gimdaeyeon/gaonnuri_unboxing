@@ -22,6 +22,7 @@ export type Database = {
           created_at: string
           id: string
           is_anonymous: boolean
+          is_del: boolean
           password: string
           pray_count: number
           updated_at: string
@@ -33,6 +34,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_anonymous?: boolean
+          is_del?: boolean
           password?: string
           pray_count?: number
           updated_at?: string
@@ -44,6 +46,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_anonymous?: boolean
+          is_del?: boolean
           password?: string
           pray_count?: number
           updated_at?: string

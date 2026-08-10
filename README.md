@@ -59,8 +59,17 @@ JSX 수정이 필요 없다. 구체 색상 클래스(`bg-indigo-500` 등)는 금
 경유하며, 실제 구현은 [src/lib/data/supabase-repository.ts](src/lib/data/supabase-repository.ts)다.
 
 테이블: `prayer_requests` — 컬럼은 snake_case (`author_name`, `cohort`,
-`is_anonymous`, `category`, `content`, `created_at`, `updated_at`).
+`is_anonymous`, `content`, `pray_count`, `password`, `is_del`, `created_at`, `updated_at`).
 `(cohort, author_name)` 인덱스 권장.
+
+**삭제는 소프트 삭제다** — `/edit/:id`에서 지우면 행이 사라지는 게 아니라 `is_del`이
+`true`가 된다. 실제 delete를 열면 지금의 RLS(누구나 쓰기) 아래에서 누구든 남의 글을
+영구히 지울 수 있고, 잘못 지운 걸 되돌릴 방법도 없기 때문이다. 대신 **읽는 쪽이
+전부 책임진다** — `supabase-repository.ts`의 모든 쿼리에 `NOT_DELETED`가 걸려 있고,
+새 쿼리를 추가할 때 이걸 빠뜨리면 지운 기도제목이 목록·검색·수정 화면에 되살아난다.
+`increment_pray_count`도 지워진 행은 건너뛴다([0003](supabase/migrations/0003_soft_delete.sql)) —
+목록에서 사라진 뒤에도 이미 열려 있던 화면에서는 반응 버튼을 누를 수 있어서다.
+`is_del`은 도메인 타입(`PrayerRequest`)에 없다: 살아있는 행만 읽으므로 화면에서 판단할 일이 없다.
 
 ## 설계 메모
 
