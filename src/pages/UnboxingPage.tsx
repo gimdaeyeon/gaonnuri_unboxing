@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { PrayerRequest } from '@/lib/types';
 import { getDisplayName } from '@/lib/types';
@@ -41,18 +41,26 @@ function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-const TITLE_LETTERS: { text: string; color: string; rotate: number }[] = [
+const TITLE_LETTERS: { text: string; color: string; rotate: number; adminTap?: boolean }[] = [
   { text: 'UN', color: 'var(--color-theme-disciple)', rotate: -4 },
   { text: 'BOX', color: 'var(--color-theme-salt)', rotate: 3 },
   { text: 'ING', color: 'var(--color-theme-child)', rotate: -3 },
-  { text: '!', color: 'var(--color-text)', rotate: 6 },
+  { text: '!', color: 'var(--color-text)', rotate: 6, adminTap: true },
 ];
+
+// 제목의 '!'를 이만큼 연속으로 누르면 관리자 페이지로 간다 — 탭바에 없는 /admin의
+// 숨은 입구. 비밀번호 게이트는 그쪽에 있으므로 여기서는 '아무도 실수로 밟지 않는'
+// 정도만 보장하면 된다.
+const ADMIN_TAP_COUNT = 10;
+// 손가락이 멈추면 세던 걸 버린다 — 며칠에 걸쳐 우연히 10번 눌리는 일을 막는다.
+const ADMIN_TAP_TIMEOUT_MS = 2000;
 
 const BOX_LAYER_CLASS = 'pointer-events-none absolute inset-x-0 bottom-0 w-full text-text';
 
 export function UnboxingPage() {
   const { prayers, loading, handleReacted } = usePrayers();
   const prefersReducedMotion = useReducedMotion();
+  const navigate = useNavigate();
 
   const [phase, setPhase] = useState<BoxPhase>('closed');
   const [current, setCurrent] = useState<PrayerRequest | null>(null);
@@ -66,6 +74,10 @@ export function UnboxingPage() {
     new ShuffleQueue<PrayerRequest>([], (p) => p.id, (p) => prayCountWeight(p.prayCount)),
   );
   const mountedRef = useRef(true);
+  // 관리자 입구 — 상태가 아니라 ref로 센다. 누를 때마다 리렌더가 나면
+  // 카드 애니메이션이 끊긴다. 화면에 표시할 것도 없으니 ref로 충분하다.
+  const adminTapsRef = useRef(0);
+  const adminTapTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     queueRef.current.update(prayers);
@@ -80,6 +92,21 @@ export function UnboxingPage() {
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => () => clearTimeout(adminTapTimerRef.current), []);
+
+  function handleAdminTap() {
+    clearTimeout(adminTapTimerRef.current);
+    adminTapsRef.current += 1;
+    if (adminTapsRef.current >= ADMIN_TAP_COUNT) {
+      adminTapsRef.current = 0;
+      navigate('/admin');
+      return;
+    }
+    adminTapTimerRef.current = setTimeout(() => {
+      adminTapsRef.current = 0;
+    }, ADMIN_TAP_TIMEOUT_MS);
+  }
 
   async function draw() {
     if (isAnimating || loading) return;
@@ -138,15 +165,28 @@ export function UnboxingPage() {
             2026 Gaonnuri Summer Retreat
           </p>
           <h1 className="mt-3 flex flex-wrap justify-center font-heading text-5xl font-black tracking-tight sm:text-6xl">
-            {TITLE_LETTERS.map((part, i) => (
-              <span
-                key={i}
-                className="inline-block"
-                style={{ color: part.color, transform: `rotate(${part.rotate}deg)` }}
-              >
-                {part.text}
-              </span>
-            ))}
+            {TITLE_LETTERS.map((part, i) => {
+              const style = { color: part.color, transform: `rotate(${part.rotate}deg)` };
+              // 관리자 입구인 '!'만 버튼이다. 보조기기에는 숨겨 제목이 그대로 읽히게 하고
+              // (탭 순서에도 안 들어간다), 커서·하이라이트도 평범한 글자처럼 보이게 둔다.
+              return part.adminTap ? (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={handleAdminTap}
+                  aria-hidden
+                  tabIndex={-1}
+                  className="inline-block cursor-default select-none"
+                  style={style}
+                >
+                  {part.text}
+                </button>
+              ) : (
+                <span key={i} className="inline-block" style={style}>
+                  {part.text}
+                </span>
+              );
+            })}
           </h1>
           <p className="mt-3 font-accent text-xs text-text-muted sm:text-sm">
             <span style={{ color: 'var(--color-theme-child)' }}>Child of God</span>

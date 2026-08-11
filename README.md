@@ -25,6 +25,16 @@ npm run build
 
 새 목적지를 추가할 땐 `BottomTabBar`의 `TABS` 배열만 고치면 된다.
 
+**숨은 경로 `/admin`** ([AdminPage.tsx](src/pages/AdminPage.tsx)) — 탭바에 없는 관리자
+화면. 언박싱 제목 `UNBOXING!`의 **`!`를 2초 안에 10번 연속 누르면** 여기로 온다
+(`ADMIN_TAP_COUNT`/`ADMIN_TAP_TIMEOUT_MS`, [UnboxingPage.tsx](src/pages/UnboxingPage.tsx)) —
+손이 멈추면 카운트가 리셋되므로 우연히 밟히지 않는다. 물론 주소창에 직접 쳐도 된다.
+전체 목록(삭제된 것 포함)을 보고 검색·삭제·복원할 수 있다. 입장 비밀번호는
+`.env.local`의 `VITE_ADMIN_PASSWORD`와 빌드 시점에 비교한다 — env가 비어 있으면
+아무 비밀번호도 통하지 않는다. 값이 번들 JS에 그대로 실리므로 개발자 도구로 찾을 수는
+있지만, RLS가 어차피 누구나 쓰기라 게이트는 화면 접근을 막는 수준이다(교회 내부용).
+통과 여부는 sessionStorage에 탭 세션 동안만 기억한다.
+
 폼(`/new` `/find` `/edit/:id`)의 "뒤로"는 항상 왔던 곳으로 돌아간다 —
 [useReturnTo](src/lib/use-return-to.ts)가 `Link`/`navigate`의 `state.from`을 읽고,
 직접 URL로 들어와 state가 없으면 각 폼의 fallback(`/new`→`/grid`, `/find`→`/`,

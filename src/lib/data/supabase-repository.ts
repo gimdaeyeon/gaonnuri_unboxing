@@ -12,7 +12,8 @@ import type { PrayerInput, PrayerRequest } from '@/lib/types';
 import type { PrayerRepository } from './prayer-repository';
 
 // password를 제외한 공개 컬럼 목록 — 모든 조회에 이 상수를 사용한다.
-const PUBLIC_COLUMNS =
+// (admin-repository도 이 상수와 fromRow를 공유한다.)
+export const PUBLIC_COLUMNS =
   'id, author_name, cohort, is_anonymous, content, pray_count, created_at, updated_at';
 
 // 살아있는 행만 읽는다는 조건. `.match(NOT_DELETED)` 형태로 모든 조회에 붙인다.
@@ -20,9 +21,9 @@ const NOT_DELETED = { is_del: false } as const;
 
 // is_del은 읽기 모델에 노출하지 않는다 — 어차피 false인 행만 읽으므로 화면에서
 // 판단할 일이 없고, 그래서 PrayerRequest에도 대응 필드를 두지 않았다.
-type PublicRow = Omit<Tables<'prayer_requests'>, 'password' | 'is_del'>;
+export type PublicRow = Omit<Tables<'prayer_requests'>, 'password' | 'is_del'>;
 
-function fromRow(row: PublicRow): PrayerRequest {
+export function fromRow(row: PublicRow): PrayerRequest {
   return {
     id: row.id,
     authorName: row.author_name,
