@@ -1,22 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import type { PrayerInput, PrayerRequest } from '@/lib/types';
 import { getDisplayName } from '@/lib/types';
 import { prayerRepository } from '@/lib/data/prayer-repository';
-import { PrayerForm } from '@/components/prayer/PrayerForm';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DEFAULT_PASSWORD, PrayerForm } from '@/components/prayer/PrayerForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -77,88 +66,18 @@ export function EditPage() {
       ) : !authorized ? (
         <PasswordGate id={id!} prayer={prayer} onUnlock={() => setAuthorized(true)} />
       ) : (
-        <>
-          <PrayerForm
-            initialValue={{
-              authorName: prayer.authorName,
-              cohort: prayer.cohort,
-              isAnonymous: prayer.isAnonymous,
-              content: prayer.content,
-            }}
-            submitLabel="수정 저장"
-            allowPasswordChange
-            onSubmit={handleSubmit}
-          />
-          <DeleteSection id={id!} onDeleted={() => navigate(returnTo)} />
-        </>
+        <PrayerForm
+          initialValue={{
+            authorName: prayer.authorName,
+            cohort: prayer.cohort,
+            isAnonymous: prayer.isAnonymous,
+            content: prayer.content,
+          }}
+          submitLabel="수정 저장"
+          allowPasswordChange
+          onSubmit={handleSubmit}
+        />
       )}
-    </div>
-  );
-}
-
-interface DeleteSectionProps {
-  id: string;
-  onDeleted: () => void;
-}
-
-// 삭제는 비밀번호 게이트를 통과한 뒤에만 보인다(수정과 같은 조건).
-// 실제로는 소프트 삭제라 DB에는 남지만, 화면에서는 완전히 사라지므로
-// 사용자에게는 '지운다'고만 말한다.
-function DeleteSection({ id, onDeleted }: DeleteSectionProps) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleDelete() {
-    setConfirmOpen(false);
-    setDeleting(true);
-    setError(null);
-    try {
-      await prayerRepository.softDelete(id);
-      onDeleted();
-    } catch {
-      setError('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-      setDeleting(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2 border-t border-border pt-6">
-      <Button
-        type="button"
-        variant="destructive"
-        size="lg"
-        disabled={deleting}
-        onClick={() => setConfirmOpen(true)}
-      >
-        <Trash2 />
-        {deleting ? '삭제 중…' : '기도제목 삭제'}
-      </Button>
-      {error ? (
-        <p className="text-sm text-destructive">{error}</p>
-      ) : (
-        <p className="text-sm text-text-muted">지우면 모아보기·언박싱에서 더 이상 보이지 않아요.</p>
-      )}
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogMedia>
-              <Trash2 className="text-destructive" />
-            </AlertDialogMedia>
-            <AlertDialogTitle>이 기도제목을 지울까요?</AlertDialogTitle>
-            <AlertDialogDescription>
-              지운 뒤에는 목록에서 찾을 수 없어요. 다시 올리려면 새로 작성해야 해요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>
-              지우기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
@@ -216,6 +135,12 @@ function PasswordGate({ id, prayer, onUnlock }: PasswordGateProps) {
           autoFocus
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {/* 안내는 오류가 떠도 계속 보여준다 — 비밀번호를 틀린 바로 그 순간이
+            기본값을 가장 알고 싶은 때다. */}
+        <p className="text-sm text-text-muted">
+          따로 정하지 않으셨다면 기본 비밀번호는{' '}
+          <span className="font-semibold text-primary-ink">{DEFAULT_PASSWORD}</span>이에요.
+        </p>
       </div>
       <Button type="submit" size="lg" disabled={checking}>
         {checking ? '확인 중…' : '확인'}

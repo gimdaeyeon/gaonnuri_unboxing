@@ -3,8 +3,9 @@
 //                   password, is_del, created_at, updated_at
 // 보안 수준: 비밀번호 평문, 누구나 읽기/쓰기 — 교회 내부용.
 // password는 절대 목록/단건 조회 select에 포함하지 않는다. 검증은 verifyPassword로만.
-// 삭제는 소프트 삭제(is_del = true)다. 새 조회를 추가할 땐 반드시 NOT_DELETED를
-// 함께 걸 것 — 빠뜨리면 지운 기도제목이 목록·검색·수정 화면에 되살아난다.
+// 삭제는 소프트 삭제(is_del = true)이고, 세우고 내리는 쪽은 관리자 화면뿐이다
+// (admin-repository.ts). 여기는 읽는 쪽만 책임진다 — 새 조회를 추가할 땐 반드시
+// NOT_DELETED를 함께 걸 것. 빠뜨리면 내린 기도제목이 목록·검색·수정 화면에 되살아난다.
 
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/database.types';
@@ -126,17 +127,6 @@ export const supabasePrayerRepository: PrayerRepository = {
     // 해당 id의 행이 없거나 이미 지워졌으면 갱신된 행이 없어 null이 온다(0003 마이그레이션).
     if (data === null) throw new Error(`기도제목을 찾을 수 없습니다: ${id}`);
     return data;
-  },
-
-  async softDelete(id) {
-    // 행을 지우지 않고 표시만 한다 — 잘못 지워도 DB에서 되돌릴 수 있다.
-    // 이미 지워진 행은 조건에 걸리지 않아 그냥 아무 일도 일어나지 않는다.
-    const { error } = await supabase
-      .from('prayer_requests')
-      .update({ is_del: true, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .match(NOT_DELETED);
-    if (error) throw error;
   },
 
   async verifyPassword(id, password) {

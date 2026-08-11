@@ -22,6 +22,10 @@ import { Textarea } from '@/components/ui/textarea';
 
 const PASSWORD_MIN_LENGTH = 4;
 
+// 새 기도제목의 비밀번호 기본값 — 대부분 그대로 두고 올린다. 나중에 수정하러 왔을 때
+// 기억이 안 나는 사람이 많아 EditPage의 비밀번호 게이트가 이 값을 안내에 쓴다.
+export const DEFAULT_PASSWORD = '0000';
+
 interface PrayerFormProps {
   initialValue?: PrayerInput;
   submitLabel: string;
@@ -55,7 +59,7 @@ export function PrayerForm({
   const [authorName, setAuthorName] = useState(initialValue?.authorName ?? '');
   const [isAnonymous, setIsAnonymous] = useState(initialValue?.isAnonymous ?? false);
   const [content, setContent] = useState(initialValue?.content ?? '');
-  const [password, setPassword] = useState(requirePassword ? '0000' : '');
+  const [password, setPassword] = useState(requirePassword ? DEFAULT_PASSWORD : '');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);

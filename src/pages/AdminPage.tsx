@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { LockKeyhole, RotateCcw, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { adminRepository, type AdminPrayer } from '@/lib/data/admin-repository';
 import {
   AlertDialog,
@@ -150,13 +150,17 @@ function AdminGate({ onUnlock }: AdminGateProps) {
   );
 }
 
+// 화면에서는 '숨기기'로 부르지만 저장되는 건 그대로 소프트 삭제(is_del)다 —
+// 되돌릴 수 있는 동작이라 '삭제'보다 실제 결과에 가까운 말이고, 관리자가
+// 지웠다고 겁먹을 일도 없다. 그래서 UI 상태 이름은 hide 계열, 데이터 쪽
+// (AdminPrayer.isDeleted, adminRepository.softDelete)은 DB 어휘 그대로 둔다.
 function AdminList() {
   const [prayers, setPrayers] = useState<AdminPrayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [showDeleted, setShowDeleted] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<AdminPrayer | null>(null);
+  const [showHidden, setShowHidden] = useState(false);
+  const [pendingHide, setPendingHide] = useState<AdminPrayer | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -182,21 +186,21 @@ function AdminList() {
     const q = query.trim().toLowerCase();
     return prayers.filter(
       (p) =>
-        (showDeleted || !p.isDeleted) &&
+        (showHidden || !p.isDeleted) &&
         (!q ||
           p.authorName.toLowerCase().includes(q) ||
           p.cohort.includes(q) ||
           p.content.toLowerCase().includes(q)),
     );
-  }, [prayers, query, showDeleted]);
+  }, [prayers, query, showHidden]);
 
-  const deletedCount = prayers.filter((p) => p.isDeleted).length;
-  const aliveCount = prayers.length - deletedCount;
+  const hiddenCount = prayers.filter((p) => p.isDeleted).length;
+  const visibleCount = prayers.length - hiddenCount;
 
-  // 삭제/복원은 같은 플래그의 양방향이라 한 함수로 처리한다.
+  // 숨기기/다시 보이기는 같은 플래그의 양방향이라 한 함수로 처리한다.
   // 성공하면 목록을 다시 불러오는 대신 해당 항목의 표시만 뒤집는다 — 순서가 유지되고,
-  // '삭제된 것도 보기'가 켜져 있으면 방금 지운 항목이 그 자리에 삭제됨으로 남는다.
-  async function setDeleted(prayer: AdminPrayer, next: boolean) {
+  // '숨긴 것도 보기'가 켜져 있으면 방금 숨긴 항목이 그 자리에 숨김으로 남는다.
+  async function setHidden(prayer: AdminPrayer, next: boolean) {
     setBusyId(prayer.id);
     setActionError(null);
     try {
@@ -211,18 +215,18 @@ function AdminList() {
     } catch {
       setActionError(
         next
-          ? '삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.'
-          : '복원에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+          ? '숨기기에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+          : '다시 보이기에 실패했습니다. 잠시 후 다시 시도해 주세요.',
       );
     } finally {
       setBusyId(null);
     }
   }
 
-  function handleConfirmDelete() {
-    const target = pendingDelete;
-    setPendingDelete(null);
-    if (target) void setDeleted(target, true);
+  function handleConfirmHide() {
+    const target = pendingHide;
+    setPendingHide(null);
+    if (target) void setHidden(target, true);
   }
 
   if (loading) {
@@ -245,13 +249,13 @@ function AdminList() {
       />
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm text-text-muted">
-          전체 {aliveCount} · 삭제됨 {deletedCount}
+          공개 중 {visibleCount} · 숨김 {hiddenCount}
         </span>
         <div className="flex items-center gap-2">
-          <Label htmlFor="show-deleted" className="text-sm text-text-muted">
-            삭제된 것도 보기
+          <Label htmlFor="show-hidden" className="text-sm text-text-muted">
+            숨긴 것도 보기
           </Label>
-          <Switch id="show-deleted" checked={showDeleted} onCheckedChange={setShowDeleted} />
+          <Switch id="show-hidden" checked={showHidden} onCheckedChange={setShowHidden} />
         </div>
       </div>
 
@@ -284,7 +288,7 @@ function AdminList() {
                   )}
                   {prayer.isDeleted && (
                     <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-                      삭제됨
+                      숨김
                     </span>
                   )}
                   <span className="ml-auto text-xs text-text-muted">
@@ -302,9 +306,9 @@ function AdminList() {
                       variant="outline"
                       size="sm"
                       disabled={busyId === prayer.id}
-                      onClick={() => void setDeleted(prayer, false)}
+                      onClick={() => void setHidden(prayer, false)}
                     >
-                      <RotateCcw /> 복원
+                      <Eye /> 다시 보이기
                     </Button>
                   ) : (
                     <Button
@@ -312,9 +316,9 @@ function AdminList() {
                       variant="destructive"
                       size="sm"
                       disabled={busyId === prayer.id}
-                      onClick={() => setPendingDelete(prayer)}
+                      onClick={() => setPendingHide(prayer)}
                     >
-                      <Trash2 /> 삭제
+                      <EyeOff /> 숨기기
                     </Button>
                   )}
                 </footer>
@@ -325,27 +329,27 @@ function AdminList() {
       )}
 
       <AlertDialog
-        open={pendingDelete !== null}
+        open={pendingHide !== null}
         onOpenChange={(open) => {
-          if (!open) setPendingDelete(null);
+          if (!open) setPendingHide(null);
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogMedia>
-              <Trash2 className="text-destructive" />
+              <EyeOff className="text-destructive" />
             </AlertDialogMedia>
-            <AlertDialogTitle>이 기도제목을 지울까요?</AlertDialogTitle>
+            <AlertDialogTitle>이 기도제목을 숨길까요?</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete &&
-                `${pendingDelete.cohort}또래 ${pendingDelete.authorName} 님의 기도제목이 목록에서 사라져요. `}
-              &lsquo;삭제된 것도 보기&rsquo;에서 언제든 복원할 수 있어요.
+              {pendingHide &&
+                `${pendingHide.cohort}또래 ${pendingHide.authorName} 님의 기도제목이 공개 목록에서 사라져요. `}
+              &lsquo;숨긴 것도 보기&rsquo;에서 언제든 다시 보이게 할 수 있어요.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleConfirmDelete}>
-              지우기
+            <AlertDialogAction variant="destructive" onClick={handleConfirmHide}>
+              숨기기
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
