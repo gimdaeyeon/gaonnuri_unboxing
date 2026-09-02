@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link } from 'react-router';
 import type { PrayerRequest } from '@/lib/types';
 import { prayerRepository } from '@/lib/data/prayer-repository';
 import { PrayerCard } from '@/components/prayer/PrayerCard';
+import { ArchiveNoticeDialog } from '@/components/prayer/ArchiveNoticeDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ export function PrayerFinder() {
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<PrayerRequest[] | null>(null);
+  const [noticeOpen, setNoticeOpen] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -82,15 +83,20 @@ export function PrayerFinder() {
             {results.map((prayer) => (
               <li key={prayer.id} className="flex flex-col gap-2">
                 <PrayerCard prayer={prayer} onReacted={handleReacted} />
-                <Button asChild variant="outline" className="self-end">
-                  <Link to={`/edit/${prayer.id}`} state={{ from: '/find' }}>
-                    수정
-                  </Link>
+                {/* 아카이브 전환 — 수정 화면으로 보내는 대신 누른 순간 종료 안내를 띄운다. */}
+                <Button variant="outline" className="self-end" onClick={() => setNoticeOpen(true)}>
+                  수정
                 </Button>
               </li>
             ))}
           </ul>
         ))}
+
+      <ArchiveNoticeDialog
+        open={noticeOpen}
+        onOpenChange={setNoticeOpen}
+        description="2026 여름수련회가 마무리되어 기도제목은 더 이상 수정할 수 없어요. 남겨주신 그대로 기록으로 보관돼요."
+      />
     </div>
   );
 }

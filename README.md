@@ -3,6 +3,10 @@
 2026 가온누리 여름수련회 "Unboxing" 기도제목 공유 사이트.
 Vite + React (CSR) + TypeScript + Tailwind CSS v4 + shadcn/ui + Framer Motion.
 
+**수련회가 끝나 지금은 읽기 전용 아카이브다.** 마감 시점의 기도제목 스냅샷을
+번들에 담아 서비스하고(DB 연결 없음), 쓰기는 전부 닫혔다 — 자세한 건 아래
+「2. 데이터」 참고.
+
 ```bash
 npm install
 npm run dev     # http://localhost:5173
@@ -20,22 +24,10 @@ npm run build
 |----|------|------|
 | 언박싱 | `/` | 박스를 열면 랜덤 기도제목이 튀어나온다 |
 | 모아보기 | `/grid` (활성: `/grid` `/slide` `/reels`) | 그리드·슬라이드·릴스 세그먼트 |
-| 남기기 | `/new` | 새 기도제목 입력 |
-| 내 기도제목 | `/find` (활성: `/find` `/edit/*`) | 또래 + 이름으로 검색·수정 |
+| 남기기 | `/new` | 수련회 때의 입력 화면 그대로 — 제출하면 종료 안내 |
+| 내 기도제목 | `/find` (활성: `/find` `/edit/*`) | 또래 + 이름으로 검색 |
 
 새 목적지를 추가할 땐 `BottomTabBar`의 `TABS` 배열만 고치면 된다.
-
-**숨은 경로 `/admin`** ([AdminPage.tsx](src/pages/AdminPage.tsx)) — 탭바에 없는 관리자
-화면. 언박싱 제목 `UNBOXING!`의 **`!`를 2초 안에 10번 연속 누르면** 여기로 온다
-(`ADMIN_TAP_COUNT`/`ADMIN_TAP_TIMEOUT_MS`, [UnboxingPage.tsx](src/pages/UnboxingPage.tsx)) —
-손이 멈추면 카운트가 리셋되므로 우연히 밟히지 않는다. 물론 주소창에 직접 쳐도 된다.
-전체 목록(숨긴 것 포함)을 보고 검색·숨기기·다시 보이기를 할 수 있다. 저장되는 건
-사용자 삭제와 똑같은 `is_del`이지만, 되돌릴 수 있는 동작이라 관리자 화면에서는
-&lsquo;숨기기&rsquo;로 부른다(UI 상태만 hide 어휘, 데이터 계층은 그대로). 입장 비밀번호는
-`.env.local`의 `VITE_ADMIN_PASSWORD`와 빌드 시점에 비교한다 — env가 비어 있으면
-아무 비밀번호도 통하지 않는다. 값이 번들 JS에 그대로 실리므로 개발자 도구로 찾을 수는
-있지만, RLS가 어차피 누구나 쓰기라 게이트는 화면 접근을 막는 수준이다(교회 내부용).
-통과 여부는 sessionStorage에 탭 세션 동안만 기억한다.
 
 폼(`/new` `/find` `/edit/:id`)의 "뒤로"는 항상 왔던 곳으로 돌아간다 —
 [useReturnTo](src/lib/use-return-to.ts)가 `Link`/`navigate`의 `state.from`을 읽고,
@@ -65,29 +57,31 @@ JSX 수정이 필요 없다. 구체 색상 클래스(`bg-indigo-500` 등)는 금
 (`text-primary-ink`)이다 — 라이트 배경 위 라임 글자는 대비가 안 나와 어두운 값으로 분리했다.
 새 컴포넌트에서 라임을 글자색으로 쓸 땐 반드시 `text-primary-ink`를 쓸 것.
 
-### 2. 데이터 접근
+### 2. 데이터 (아카이브)
 
-사용자 화면의 데이터 접근은 `prayerRepository` 인터페이스([src/lib/data/prayer-repository.ts](src/lib/data/prayer-repository.ts))를
-경유하며, 실제 구현은 [src/lib/data/supabase-repository.ts](src/lib/data/supabase-repository.ts)다.
-관리자 화면만 [admin-repository.ts](src/lib/data/admin-repository.ts)를 쓴다.
+수련회가 끝나면서(2026-08) Supabase를 걷어냈다. 마감 시점의 기도제목 스냅샷이
+[src/lib/data/prayers.json](src/lib/data/prayers.json)이다 — 비밀번호와 관리자가
+숨긴 글(`is_del`)은 내보내지 않았고, **이름은 성만 남기고 마스킹**했다(예: 김민수 →
+김00). 실명은 repo 어디에도 없고, 이름 검색은 입력을 같은 규칙(`maskName`)으로
+마스킹한 뒤 비교하므로 사용자는 계속 실명으로 검색하면 된다.
+[prayer-repository.ts](src/lib/data/prayer-repository.ts)가 이 파일을 읽는 정적 구현이다. 인터페이스에는 읽기(`getAll`/`getById`/`findByAuthor`)만
+남겼다: 쓰기를 타입에서 지운 것이 "읽기 전용"의 보장이라, 화면 코드가 실수로
+쓰기를 되살릴 방법이 없다.
 
-테이블: `prayer_requests` — 컬럼은 snake_case (`author_name`, `cohort`,
-`is_anonymous`, `content`, `pray_count`, `password`, `is_del`, `created_at`, `updated_at`).
-`(cohort, author_name)` 인덱스 권장.
+화면과 탭은 수련회 때 모습 그대로다. 대신 실제 쓰기가 일어나던 순간에
+[ArchiveNoticeDialog](src/components/prayer/ArchiveNoticeDialog.tsx)가 종료를 안내한다 —
+새 글은 제출을 캡처 단계에서 가로채고([NewPage](src/pages/NewPage.tsx)), 수정 버튼은
+화면 이동 대신 팝업을 띄운다([PrayerFinder](src/components/prayer/PrayerFinder.tsx)).
+`/edit/:id`는 딥링크용으로만 남아 카드와 안내문을 보여준다. 관리자 화면(`/admin`)과
+언박싱 제목의 숨은 입구는 관리할 DB가 없어져 함께 제거했다.
 
-**기도제목을 내리는 건 관리자만 한다** — 사용자는 수정만 할 수 있고 삭제 버튼이 없다.
-관리자가 `/admin`에서 숨기면 행이 사라지는 게 아니라 `is_del`이 `true`가 된다. 실제
-delete를 열면 지금의 RLS(누구나 쓰기) 아래에서 누구든 남의 글을 영구히 지울 수 있고,
-잘못 지운 걸 되돌릴 방법도 없기 때문이다. 그래서 **쓰기는 `adminRepository`에만**
-있고(`softDelete`/`restore`가 같은 플래그의 양방향), **읽는 쪽이 전부 책임진다** —
-`supabase-repository.ts`의 모든 쿼리에 `NOT_DELETED`가 걸려 있고, 새 쿼리를 추가할 때
-이걸 빠뜨리면 내린 기도제목이 목록·검색·수정 화면에 되살아난다.
-`increment_pray_count`도 내려간 행은 건너뛴다([0003](supabase/migrations/0003_soft_delete.sql)) —
-목록에서 사라진 뒤에도 이미 열려 있던 화면에서는 반응 버튼을 누를 수 있어서다.
-`is_del`은 도메인 타입(`PrayerRequest`)에 없다: 살아있는 행만 읽으므로 화면에서 판단할 일이 없다
-(관리자용 `AdminPrayer`에만 `isDeleted`가 있다).
+'함께 기도해요'만 계속 동작한다 — 서버가 없으니 이 기기(localStorage)에만 남는
++1이다. 수련회 기간의 반응(스냅샷 카운트에 이미 반영됨)과 이후의 로컬 반응을
+다른 키로 나눠 이중 계산을 막는다: [reacted-storage.ts](src/lib/reacted-storage.ts).
+
+`supabase/migrations/`는 운영 당시 DB 이력 기록으로 남겨 두었다.
 
 ## 설계 메모
 
-- **또래+이름**이 검색·수정의 식별 키 (익명 글도 검색 가능 — 익명은 목록 표시만 가림)
+- **또래+이름**이 검색의 식별 키 (익명 글도 검색 가능 — 익명은 목록 표시만 가림)
 - 인증 없음 — 교회 내부 신뢰 전제 (의도된 설계)

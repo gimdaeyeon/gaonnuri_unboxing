@@ -14,7 +14,6 @@ const ReelsPage = lazy(() => import('@/pages/ReelsPage').then((m) => ({ default:
 const NewPage = lazy(() => import('@/pages/NewPage').then((m) => ({ default: m.NewPage })))
 const FindPage = lazy(() => import('@/pages/FindPage').then((m) => ({ default: m.FindPage })))
 const EditPage = lazy(() => import('@/pages/EditPage').then((m) => ({ default: m.EditPage })))
-const AdminPage = lazy(() => import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })))
 const NotFoundPage = lazy(() =>
   import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 )
@@ -37,7 +36,6 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/new" element={<NewPage />} />
           <Route path="/find" element={<FindPage />} />
           <Route path="/edit/:id" element={<EditPage />} />
-          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
