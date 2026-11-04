@@ -1,0 +1,24 @@
+{
+  "name": "unboxing-video",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Unboxing out/unboxing.mp4",
+    "still": "remotion still Unboxing out/frame.png"
+  },
+  "dependencies": {
+    "@fontsource/silkscreen": "^5.2.5",
+    "@remotion/cli": "^4.0.0",
+    "pretendard": "^1.3.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.8.3"
+  }
+}

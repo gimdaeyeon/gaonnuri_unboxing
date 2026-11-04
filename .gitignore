@@ -25,3 +25,5 @@ dist-ssr
 
 .claude
 .env*
+# 영상 렌더 결과물 — 코드로 다시 만들 수 있으므로 저장소에 넣지 않는다
+video/out
